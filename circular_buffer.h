@@ -1,0 +1,57 @@
+/***********************************************************************
+ * @file      circular_buffer.h
+ * @version   0.1
+ * @brief     Function header/interface file.
+ *
+ * @author    Awesome Student, Awesome.Student@Colorado.edu
+ * @date      Dec 22, 2021
+ *
+ * @institution University of Colorado Boulder (UCB)
+ * @course      ECEN 5823-001: IoT Embedded Firmware
+ * @instructor  David Sluiter
+ *
+ * @assignment Assignment 1.5 - Circular Buffer
+ * @due        
+ *
+ * @resources   
+ * 
+ */
+
+// Define everything that a caller needs to know
+
+
+
+#ifndef __MY_CIRCULAR_BUFFER__
+#define __MY_CIRCULAR_BUFFER__
+
+
+
+
+// This is the number of entries in the queue 
+#define QUEUE_DEPTH   16
+
+
+// Modern C (circa 2021 does it this way)
+// typedef <name> is referred to as an anonymous struct definition
+// This is the structure of 1 queue/buffer entry
+typedef struct {
+
+  uint8_t       a;
+  uint16_t      b;
+
+} queue_struct_t;
+
+
+
+
+
+// function prototypes
+bool     write_queue (uint8_t a, uint16_t b); 
+bool     read_queue (uint8_t *a, uint16_t *b);
+void     get_queue_status (uint32_t *_wptr, uint32_t *_rptr, bool *_full, bool *_empty);
+uint32_t get_queue_depth (void);
+
+
+
+#endif // __MY_CIRCULAR_BUFFER__
+

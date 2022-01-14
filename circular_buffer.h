@@ -27,8 +27,15 @@
 
 
 
-// This is the number of entries in the queue 
-#define QUEUE_DEPTH   16
+// This is the number of entries in the queue. Please leave
+// this value set to 16.
+#define QUEUE_DEPTH      (16)
+// Student edit: 
+//   define this to 1 if your design uses all array entries
+//   define this to 0 if your design leaves 1 array entry empty
+#define USE_ALL_ENTRIES  (1)
+
+
 
 
 // Modern C (circa 2021 does it this way)

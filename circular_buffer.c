@@ -111,8 +111,8 @@ void get_queue_status (uint32_t *_wptr, uint32_t *_rptr, bool *_full, bool *_emp
 
 // ---------------------------------------------------------------------
 // Public function
-// Function that computes the number of entries in the queue. If there are
-// 3 entries in the queue, it should return 3. If the queue is empty it should 
+// Function that computes the number of written entries currently in the queue. If there
+// are 3 entries in the queue, it should return 3. If the queue is empty it should 
 // return 0. If the queue is full it should return either QUEUE_DEPTH if
 // USE_ALL_ENTRIES==1 otherwise returns QUEUE_DEPTH-1. 
 // ---------------------------------------------------------------------

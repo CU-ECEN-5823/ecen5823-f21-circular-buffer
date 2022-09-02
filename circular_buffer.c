@@ -1,16 +1,18 @@
 /***********************************************************************
  * @file      circular_buffer.c
- * @version   0.1
+ * @version   0.2
  * @brief     Function implementation file.
  *
  * @author    Awesome Student, Awesome.Student@Colorado.edu
  * @date      Dec 22, 2021
- *
+ *            Sept 2, 2022. Updated some of the function header comments with 
+ *            some additional clarifying statements. Changed assignment to 0.5.
+ *            
  * @institution University of Colorado Boulder (UCB)
  * @course      ECEN 5823-001: IoT Embedded Firmware
  * @instructor  David Sluiter
  *
- * @assignment Assignment 1.5 - Circular Buffer
+ * @assignment Assignment 0.5 - Circular Buffer
  * @due        
  *
  * @resources   
@@ -52,7 +54,7 @@ static uint32_t nextPtr(uint32_t ptr) {
 // ---------------------------------------------------------------------
 // Public function
 // This function writes an entry to the queue.
-// Returns false if successful or true if writing to a full fifo.
+// Returns bool false if successful or true if writing to a full fifo.
 // ---------------------------------------------------------------------
 bool write_queue (uint8_t a, uint16_t b) {
 
@@ -71,7 +73,9 @@ bool write_queue (uint8_t a, uint16_t b) {
 // ---------------------------------------------------------------------
 // Public function
 // This function reads an entry from the queue.
-// Returns false if successful or true if reading from an empty fifo. 
+// Write the values of a and b from queue_struct_t to the memory addresses
+// pointed at by *a and *b.
+// Returns bool false if successful or true if reading from an empty fifo. 
 // ---------------------------------------------------------------------
 bool read_queue (uint8_t *a, uint16_t *b) {
 
@@ -89,7 +93,8 @@ bool read_queue (uint8_t *a, uint16_t *b) {
 
 // ---------------------------------------------------------------------
 // Public function
-// This function returns the wptr, rptr, full and empty values.
+// This function returns the wptr, rptr, full and empty values, writing
+// to memory using the pointer values passed in.
 // ---------------------------------------------------------------------
 void get_queue_status (uint32_t *_wptr, uint32_t *_rptr, bool *_full, bool *_empty) {
 
@@ -106,7 +111,10 @@ void get_queue_status (uint32_t *_wptr, uint32_t *_rptr, bool *_full, bool *_emp
 
 // ---------------------------------------------------------------------
 // Public function
-// Function that computes the number of entries in the queue
+// Function that computes the number of entries in the queue. If there are
+// 3 entries in the queue, it should return 3. If the queue is empty it should 
+// return 0. If the queue is full it should return either QUEUE_DEPTH if
+// USE_ALL_ENTRIES==1 otherwise returns QUEUE_DEPTH-1. 
 // ---------------------------------------------------------------------
 uint32_t get_queue_depth() {
 

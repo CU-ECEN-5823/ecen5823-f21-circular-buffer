@@ -5,12 +5,13 @@
  *
  * @author    Awesome Student, Awesome.Student@Colorado.edu
  * @date      Dec 22, 2021
+ *            Sept 2, 2022. Changed assignment to 0.5.
  *
  * @institution University of Colorado Boulder (UCB)
  * @course      ECEN 5823-001: IoT Embedded Firmware
  * @instructor  David Sluiter
  *
- * @assignment Assignment 1.5 - Circular Buffer
+ * @assignment Assignment 0.5 - Circular Buffer
  * @due        
  *
  * @resources   

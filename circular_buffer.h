@@ -40,20 +40,20 @@
 
 
 // Modern C (circa 2021 does it this way)
-// typedef <name> is referred to as an anonymous struct definition
-// This is the structure of 1 queue/buffer entry
+// This is referred to as an anonymous struct definition.
+// This is the structure of 1 queue/buffer/FIFO entry.
+// Please do not change this definition. 
 typedef struct {
-
   uint8_t       a;
   uint16_t      b;
-
 } queue_struct_t;
 
 
 
 
 
-// function prototypes
+// Function prototypes. The autograder (i.e. the testbench) only uses these
+// functions to test your design. Please do not change these definitions.
 bool     write_queue (uint8_t a, uint16_t b); 
 bool     read_queue (uint8_t *a, uint16_t *b);
 void     get_queue_status (uint32_t *_wptr, uint32_t *_rptr, bool *_full, bool *_empty);

@@ -31,8 +31,10 @@
 
 
 // Global variable for this assignment
-// Declare memory for the queue/buffer/fifo, and the write and read pointers
-queue_struct_t   my_queue[QUEUE_DEPTH]; // the queue - an array of structs
+// Declare memory for the queue/buffer/fifo, 
+// and the write and read pointers
+queue_struct_t   my_queue[QUEUE_DEPTH]; // This is the storage for your queue
+
 uint32_t         wptr = 0;              // write pointer
 uint32_t         rptr = 0;              // read pointer
 

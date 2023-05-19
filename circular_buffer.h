@@ -42,10 +42,18 @@
 // Modern C (circa 2021 does it this way)
 // This is referred to as an anonymous struct definition.
 // This is the structure of 1 queue/buffer/FIFO entry.
-// Please do not change this definition. 
+// When you write an entry to this queue, you write 2 
+// user values to the queue entry, a and b. 
+// The rationale for declaring 1 entry in the queue in this 
+// manner will become clear later in Assignment 8. 
+// *** Please do not change this definition! 
+//   The struct name type has to be: queue_struct_t
+//   The first parameter has to be:  uint8_t       a;
+//   The second parameter has to be: uint16_t      b;
+// *** The autograder (i.e. the testbench) uses this struct!
 typedef struct {
-  uint8_t       a;
-  uint16_t      b;
+  uint8_t       a; // An 8-bit user value in 1 queue entry
+  uint16_t      b; // A 16-bit user value in 1 queue entry
 } queue_struct_t;
 
 

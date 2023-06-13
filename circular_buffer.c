@@ -30,7 +30,7 @@
 #include "circular_buffer.h"
 
 
-// Global variable for this assignment
+// Global variables for this assignment
 // Declare memory for the queue/buffer/fifo, 
 // and the write and read pointers
 queue_struct_t   my_queue[QUEUE_DEPTH]; // This is the storage for your queue
@@ -83,9 +83,25 @@ bool write_queue (uint8_t a, uint16_t b) {
 
 // ---------------------------------------------------------------------
 // Public function
-// This function reads an entry from the queue.
-// Write the values of a and b from my_queue[rptr] to the memory addresses
-// pointed at by *a and *b. In this implementation, we do it this way because
+// This function reads an entry from the queue, and returns values to the
+// caller. The values from the queue entry are returned by writing 
+// the values to variables declared by the caller, where the caller is passing
+// in pointers to a and b. The caller's code will look like this:
+//
+//   uint8_t      my8;
+//   uint16_t     my16;
+//   bool         status;
+//
+//   status = read_queue (&my8, &my16);
+//
+// *** If the code above doesn't make sense to you, you probably lack the 
+// necessary prerequisite knowledge to be successful in this course.
+//   
+// Write the values of a and b from my_queue[rptr] to 
+// the memory addresses pointed at by a and b, like this :
+//      *a = <something>;
+//      *b = <something_else>;
+// In this implementation, we do it this way because
 // standard C does not provide a mechanism for a C function to return multiple
 // values, as is common in perl or python.
 // Returns bool false if successful or true if reading from an empty fifo. 

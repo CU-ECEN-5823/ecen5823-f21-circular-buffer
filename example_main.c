@@ -1,8 +1,32 @@
 /***********************************************************************
  * @file      example_main.c
- * @version   0.1
+ * @version   0.2
  * @brief     Main function to test circular buffer implementation.
  *            Provided to students as a starting point for their testing.
+ *
+ *            Students - This code is provided as an
+ *            example of how to write a unit test. I provided this because
+ *            I've discovered that many students do not have experience with
+ *            developing a unit test. In fact this code is my autograding code
+ *            that will be used to test your design, with the constrained random tests
+ *            removed. Also note, the autograding testbench only uses the 4 functions
+ *            defined in circular_buffer.h - there is no code that secretly 
+ *            "looks inside" your design to determine correctness. 
+ *
+ *            What can you do with this file?
+ *            a) Ignore it and create your own unit test code from scratch.
+ *            b) Study it, learn from it, and/or modify it to use as your unit test.
+ * 
+ *            Does this code have to be submitted to GitHUb?
+ *            No. You can, but there is no requirement to submit this file, your main.c 
+ *            or any other file you create to GitHub. If you push additional files to 
+ *            your repo, we will ignore them, those additional files won't cause 
+ *            any problems to our testing or your grade.
+ *
+ *            Does this example testbench fully test my design? 
+ *            No. You need to develop additional tests that stress your design. You should 
+ *            strive to try to break your own design in your unit test. See the Student 
+ *            comment below.
  *
  *   
  * @description  Implements the circular buffer testbench.
@@ -28,6 +52,12 @@
 #endif
 
 
+
+// target number of test cases to run
+#define NUMBER_OF_TEST_CASES              (128000)
+
+// constrained random loop count
+#define NUMBER_CONSTRAINED_RANDOM_LOOPS   (10000)
 
 
 
@@ -401,7 +431,19 @@ int main(int argc, char *argv[]) {
    // The auto-grading testbench performs constrained random testing here
    // ----------------------------------------------------------------
    
+   
+   // ----------------------------------------------------------------
+   // Students: This is where you shall develop additional tests beyond 
+   // the tests above to stress your design. Strive to try to break your 
+   // own design.
+   // ----------------------------------------------------------------
+   
   
+   
+   
+   
+   
+   
    
    
    

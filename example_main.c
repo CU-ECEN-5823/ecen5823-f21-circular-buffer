@@ -1,34 +1,36 @@
 /***********************************************************************
- * @file      example_main.c
- * @version   0.2
- * @brief     Main function to test circular buffer implementation.
- *            Provided to students as a starting point for their testing.
- *
- *            Students - This code is provided as an
- *            example of how to write a unit test. I provided this because
- *            I've discovered that many students do not have experience with
- *            developing a unit test. In fact this code is my autograding code
- *            that will be used to test your design, with the constrained random tests
- *            removed. Also note, the autograding testbench only uses the 4 functions
- *            defined in circular_buffer.h - there is no code that secretly 
- *            "looks inside" your design to determine correctness. 
- *
- *            What can you do with this file?
- *            a) Ignore it and create your own unit test code from scratch.
- *            b) Study it, learn from it, and/or modify it to use as your unit test.
- * 
- *            Does this code have to be submitted to GitHUb?
- *            No. You can, but there is no requirement to submit this file, your main.c 
- *            or any other file you create to GitHub. If you push additional files to 
- *            your repo, we will ignore them, those additional files won't cause 
- *            any problems to our testing or your grade.
- *
- *            Does this example testbench fully test my design? 
- *            No. You need to develop additional tests that stress your design. You should 
- *            strive to try to break your own design in your unit test. See the Student 
- *            comment below.
+ * @file      main.c
+ * @version   0.7
+ * @brief     Function implementation file.
  *
- *   
+ * @author    Dave Sluiter, David.Sluiter@Colorado.edu
+ * @date      0.1 Dec 23, 2021
+ *            0.2 Jan 11, 2022. Added a numerical check for the results of
+ *            get_queue_status(). 
+ *            0.3 Jan 13, 2022. Added USE_ALL_ENTRIES, implemented both options:
+ *                1: Leave 1 entry empty
+ *                2: Use all entries
+ *            0.4 Sept 9, 2022. Fixed a bug in the scoring code where unsigned int math
+ *                was wrapping around. Also added some clamping functions for implementations
+ *                that have high error counts, clamping the worst score to 50 out of 100.
+ *            0.5 Jan 27, 2023. Created a local definition of the struct so that students have
+ *                the freedom to change the name of the anonymous struct definition and
+ *                struct element names in their circular_buffer.h file. 
+ *            0.6 Aug 22, 2023. Undid the use of a local definition of the queue struct 
+ *                queue_struct_t (v0.5), forcing students to use the definition as defined in 
+ *                circular_buffer.h.
+ *            0.7 Nov 20, 2023. Updated the queue_struct_t to use the exact values we'll
+ *                need in Assignment 8. 
+ *
+ * @institution University of Colorado Boulder (UCB)
+ * @course      ECEN 5823 - IoT Embedded Firmware
+ * @instructor  David Sluiter
+ *
+ * @assignment Assignment 0.5 - Circular Buffer
+ * @due        
+ *
+ * @resources   
+ * 
  * @description  Implements the circular buffer testbench.
  *               run as: % ./main | tee main.log 
  *               run as: % ./main <seed> | tee main.log 
@@ -37,13 +39,15 @@
 
 
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stdbool.h>
+#include <stdio.h>  // for printf()
+#include <stdint.h> // for uint8_t etc.
 
 #include <stdlib.h> // for rand(), srand()
+#include <string.h> // for memcpy()
 
 #include "circular_buffer.h"
+
+
 
 #if (USE_ALL_ENTRIES == 1)
 #define ACTUAL_QUEUE_DEPTH (QUEUE_DEPTH)
@@ -53,30 +57,25 @@
 
 
 
-// target number of test cases to run
+// target number of entries written to fifo
 #define NUMBER_OF_TEST_CASES              (128000)
 
 // constrained random loop count
-#define NUMBER_CONSTRAINED_RANDOM_LOOPS   (10000)
+#define NUMBER_CONSTRAINED_RANDOM_LOOPS   (100000)
 
 
 
 
-// these were in main(), I made globals for ease/speed, sniff... 
 
-   uint32_t     index, index2;
-   
-   bool         status;
-   int          seed;
-   
-   uint8_t      a;  
-   uint16_t     b;    
+
+   // these were in main(), I made globals for ease/speed, sniff... 
 
    // test bench data 
+   bool                status;
+   int                 seed;
    uint32_t            tb_errors = 0;                  // used for data mismatch errors
    uint32_t            tb_meta_errors = 0;             // used for meta errors, queue depth etc
    uint32_t            score;
-
 
    queue_struct_t      tb_array[NUMBER_OF_TEST_CASES]; // known good data
    uint32_t            tb_wptr = 0;                    // write pointer
@@ -89,31 +88,91 @@
    
 
 
+
+// ---------------------------------------------------------------------
+// Generator an int between 2 to 5
+// ---------------------------------------------------------------------
+int genRandom2to5() {
+
+   int theValue = rand() & 0x07; // so range at this point is 0 to 7
+   
+   if (theValue < MIN_BUFFER_LENGTH) { // 0 or 1
+       return (theValue + 2);          // make it 2 or 3
+   }
+   
+   if (theValue > MAX_BUFFER_LENGTH) { // 6 or 7
+       return (theValue - 2);          // make it 4 or 5
+   }
+   
+   return (theValue); // 2, 3, 4, 5
+   
+} // genRandom2to5()
+
+
+
+// ---------------------------------------------------------------------
+// printf 2 buffers of data using length.
+// ---------------------------------------------------------------------
+void printfBuffers(uint8_t *buf1, uint8_t *buf2, int length) {
+
+    printf ("  buffers:\n  ");
+    
+    for (int i=0; i<length; i++) {
+        printf ("%d ", *buf1);
+        buf1++;
+    } // for
+    printf ("\n");
+    
+    for (int i=0; i<length; i++) {
+        printf ("%d ", *buf2);
+        buf2++;
+    } // for
+    printf ("\n");   
+    
+} // printfBuffers
+
+
+
+
 // ---------------------------------------------------------------------
 // Fill and empty the queue
 // return 1 for stop test, 0 for no stop
 // ---------------------------------------------------------------------
 int fill_and_empty() {
 
-
+   // for writes
+   uint16_t       charHandle;                 // GATT DB handle from gatt_db.h
+   uint32_t       bufLength;                  // Number of bytes written to field buffer[5]
+   uint8_t        buffer[MAX_BUFFER_LENGTH];  // The actual data buffer for the indication,
+  
+   // for reads
+   uint16_t       charHandle2;                 // GATT DB handle from gatt_db.h
+   uint32_t       bufLength2;                  // Number of bytes written to field buffer[5]
+   uint8_t        buffer2[MAX_BUFFER_LENGTH];  // The actual data buffer for the indication
+   
    // ----------------------------------------------------------------
    // fill the queue
    // ----------------------------------------------------------------
    printf("TB: write %d entries...\n", ACTUAL_QUEUE_DEPTH);
-   for (index=0; index<ACTUAL_QUEUE_DEPTH; index++) {
+   for (int index=0; index<ACTUAL_QUEUE_DEPTH; index++) {
    
-      a = (uint8_t)  rand();
-      b = (uint16_t) rand();
+      // Generate the data
+      charHandle = (uint16_t) rand();
+      bufLength  = (uint32_t) genRandom2to5();
+      for (int index2=0; index2<bufLength; index2++) {
+          buffer[index2] = (uint8_t) rand();
+      }
       
       // write the data to tb array
-      tb_array[tb_wptr].a = a;
-      tb_array[tb_wptr].b = b;
-      
+      tb_array[tb_wptr].charHandle = charHandle;
+      tb_array[tb_wptr].bufLength  = bufLength;
+      memcpy(&tb_array[tb_wptr].buffer[0], &buffer[0], bufLength);
+
       // write the data to the DUT 
-      status = write_queue (a, b);
+      status = write_queue (charHandle, bufLength, &buffer[0]);
       if (status != 0) {
-         printf("TB Error: write_queue() returned an error. tb_wptr=%d, a=%d, b=%d\n", 
-                 tb_wptr, a, b);
+         printf("TB Error: write_queue() returned an error. tb_wptr=%d, charHandle=%d, bufLength=%d\n", 
+                 tb_wptr, charHandle, bufLength); // not displaying buffer[], for now
          tb_meta_errors++;
       }
       
@@ -125,7 +184,7 @@ int fill_and_empty() {
          return 1; // stop test
       }
       
-   } // for write
+   } // for - write
    
    
    // -------------------------------
@@ -153,26 +212,30 @@ int fill_and_empty() {
        tb_meta_errors++;
    }
 
+   
       
    
    // ----------------------------------------------------------------
    // read back data
    // ----------------------------------------------------------------
    printf("TB: read %d entries...\n", ACTUAL_QUEUE_DEPTH);
-   for (index=0; index<ACTUAL_QUEUE_DEPTH; index++) {
+   for (int index=0; index<ACTUAL_QUEUE_DEPTH; index++) {
    
-      // read the values from the DUT 
-      status = read_queue (&a, &b);
+      // read the values from the DUT
+      status = read_queue (&charHandle2, &bufLength2, &buffer2[0]);
       if (status != 0) {
-         printf("TB Error: read_queue() returned an error. a=%d, b=%d\n", a, b);
+         printf("TB Error: read_queue() returned an error. charHandle2=%d, bufLength2=%d\n", charHandle2, bufLength2);
          tb_meta_errors++;
       }
       
       // compare against known good data
-      if ((tb_array[tb_rptr].a != a) || (tb_array[tb_rptr].b != b)) {
-         printf("TB Error: read_queue() value mismatch. tb_rptr=%d, a expected=%d, a got=%d \
-                 b expected=%d, b got=%d\n", 
-                 tb_rptr, tb_array[tb_rptr].a, a, tb_array[tb_rptr].b, b);
+      if ( (tb_array[tb_rptr].charHandle != charHandle2) || 
+           (tb_array[tb_rptr].bufLength != bufLength2) ||
+           (memcmp(&tb_array[tb_rptr].buffer[0], &buffer2[0], tb_array[tb_rptr].bufLength) != 0) ) { // memcmp() == 0 -> matches
+         printf("TB Error: read_queue() value mismatch. tb_rptr=%d, charHandle expected=%d, charHandle got=%d \
+                 bufLength expected=%d, bufLength got=%d\n", 
+                 tb_rptr, tb_array[tb_rptr].charHandle, charHandle2, tb_array[tb_rptr].bufLength, bufLength2);
+         printfBuffers(&tb_array[tb_rptr].buffer[0], &buffer2[0], tb_array[tb_rptr].bufLength);
          tb_errors++;
       }
       
@@ -218,31 +281,49 @@ int fill_and_empty() {
 
 
 
+
+
+
 // ---------------------------------------------------------------------
 // Fill to 1/2 and empty
 // return 1 for stop test, 0 for no stop
 // ---------------------------------------------------------------------
 int fill_to_half_and_empty() {
 
+   // for writes
+   uint16_t       charHandle;                 // GATT DB handle from gatt_db.h
+   uint32_t       bufLength;                  // Number of bytes written to field buffer[5]
+   uint8_t        buffer[MAX_BUFFER_LENGTH];  // The actual data buffer for the indication,
+  
+   // for reads
+   uint16_t       charHandle2;                 // GATT DB handle from gatt_db.h
+   uint32_t       bufLength2;                  // Number of bytes written to field buffer[5]
+   uint8_t        buffer2[MAX_BUFFER_LENGTH];  // The actual data buffer for the indication
+   
 
    // ----------------------------------------------------------------
    // fill the queue to 1/2 full
    // ----------------------------------------------------------------
    printf("TB: write %d entries...\n", QUEUE_DEPTH/2);
-   for (index=0; index<QUEUE_DEPTH/2; index++) {
+   for (int index=0; index<QUEUE_DEPTH/2; index++) {
    
-      a = (uint8_t)  rand();
-      b = (uint16_t) rand();
+      // Generate the data
+      charHandle = (uint16_t) rand();
+      bufLength  = (uint32_t) genRandom2to5();
+      for (int index2=0; index2<bufLength; index2++) {
+          buffer[index2] = (uint8_t) rand();
+      }
       
       // write the data to tb array
-      tb_array[tb_wptr].a = a;
-      tb_array[tb_wptr].b = b;
+      tb_array[tb_wptr].charHandle = charHandle;
+      tb_array[tb_wptr].bufLength  = bufLength;
+      memcpy(&tb_array[tb_wptr].buffer[0], &buffer[0], bufLength);
       
       // write the data to the DUT 
-      status = write_queue (a, b);
+      status = write_queue (charHandle, bufLength, &buffer[0]);
       if (status != 0) {
-         printf("TB Error: write_queue() returned an error. tb_wptr=%d, a=%d, b=%d\n", 
-                 tb_wptr, a, b);
+         printf("TB Error: write_queue() returned an error. tb_wptr=%d, charHandle=%d, bufLength=%d\n", 
+                 tb_wptr, charHandle, bufLength); // not displaying buffer[], for now
          tb_meta_errors++;
       }
       
@@ -275,20 +356,23 @@ int fill_to_half_and_empty() {
    // read back data the 1/2 full
    // ----------------------------------------------------------------
    printf("TB: read %d entries...\n", QUEUE_DEPTH/2);
-   for (index=0; index<QUEUE_DEPTH/2; index++) {
+   for (int index=0; index<QUEUE_DEPTH/2; index++) {
    
-      // read the values from the DUT 
-      status = read_queue (&a, &b);
+      // read the values from the DUT
+      status = read_queue (&charHandle2, &bufLength2, &buffer2[0]);
       if (status != 0) {
-         printf("TB Error: read_queue() returned an error. a=%d, b=%d\n", a, b);
+         printf("TB Error: read_queue() returned an error. charHandle2=%d, bufLength2=%d\n", charHandle2, bufLength2);
          tb_meta_errors++;
       }
       
       // compare against known good data
-      if ((tb_array[tb_rptr].a != a) || (tb_array[tb_rptr].b != b)) {
-         printf("TB Error: read_queue() value mismatch. tb_rptr=%d, a expected=%d, a got=%d \
-                 b expected=%d, b got=%d\n", 
-                 tb_rptr, tb_array[tb_rptr].a, a, tb_array[tb_rptr].b, b);
+      if ( (tb_array[tb_rptr].charHandle != charHandle2) || 
+           (tb_array[tb_rptr].bufLength != bufLength2) ||
+           (memcmp(&tb_array[tb_rptr].buffer[0], &buffer2[0], tb_array[tb_rptr].bufLength) != 0) ) { // memcmp() == 0 -> matches
+         printf("TB Error: read_queue() value mismatch. tb_rptr=%d, charHandle expected=%d, charHandle got=%d \
+                 bufLength expected=%d, bufLength got=%d\n", 
+                 tb_rptr, tb_array[tb_rptr].charHandle, charHandle2, tb_array[tb_rptr].bufLength, bufLength2);
+         printfBuffers(&tb_array[tb_rptr].buffer[0], &buffer2[0], tb_array[tb_rptr].bufLength);
          tb_errors++;
       }
       
@@ -305,7 +389,7 @@ int fill_to_half_and_empty() {
    
    
    // - - - - - - - - - - - - - - - - - - - - -
-   // so the wptr/rptr values are 1/2 way
+   // so the wptr/rptr values are 1/2 way,
    // should be empty
    // - - - - - - - - - - - - - - - - - - - - -
    
@@ -379,10 +463,20 @@ int fill_to_half_and_empty() {
 
 int main(int argc, char *argv[]) {
 
-
-   int            flag;
+   int            flag; // status code returned by functions
    
-
+   // for writes
+   uint16_t       charHandle;                 // GATT DB handle from gatt_db.h
+   uint32_t       bufLength;                  // Number of bytes written to field buffer[5]
+   uint8_t        buffer[MAX_BUFFER_LENGTH];  // The actual data buffer for the indication,
+  
+   // for reads
+   uint16_t       charHandle2;                 // GATT DB handle from gatt_db.h
+   uint32_t       bufLength2;                  // Number of bytes written to field buffer[5]
+   uint8_t        buffer2[MAX_BUFFER_LENGTH];  // The actual data buffer for the indication
+   
+   
+   
    if (argc == 2) { // assume argv[1] is seed value
        sscanf (argv[1], "%d", &seed);
        srand (seed); // init the random seed, rand() returns an integer type between 0 and RAND_MAX
@@ -391,78 +485,105 @@ int main(int argc, char *argv[]) {
    }
    printf ("seed=%d\n", seed);
 
-/*
+
+
+   
+
+
+
+   // ------------------------------------------------------------------
    // Example usage:
    
-   int a = 5;
-   int b = 10;
-   int a2;
-   int b2;
-
-   write_queue (a, b); // write an entry to the queue
-
-   a2 = b2 = 0;
-   read_queue (&a2, &b2); // read an entry from the queue
-   printf("a=%d, b=%d\n", a2, b2); 
+//    // --------------------------
+//    // Initialization
+//    // --------------------------
+//    reset_queue();
+//    
+//    // write 1 queue entry
+//    charHandle = 5;
+//    bufLength  = 2;
+//    buffer[0]  = 6;
+//    buffer[1]  = 7;
+//    write_queue (charHandle, bufLength, &buffer[0]); // write an entry to the queue
+// 
+//    // read 1 queue entry
+//    charHandle2 = bufLength2 = 0;
+//    read_queue (&charHandle2, &bufLength2, &buffer2[0]); // read an entry from the queue
+//     
+//    // print the read-back results
+//    printf("charHandle2=%d, bufLength2=%d\n", charHandle2, bufLength2);
+//    printf("buffer data:\n  ");
+//    for (int i=0; i<bufLength2; i++) {
+//       printf("%d ", buffer2[i]);
+//    }
+//    printf("\n");
+//    
+//    // compare the written values against the read-back values
+//    if (charHandle != charHandle2) {
+//       printf("TB Error: charHandle=%d, charHandle2=%d\n", charHandle, charHandle2);
+//    }
+//    if (bufLength != bufLength2) {
+//       printf("TB Error: bufLength=%d, bufLength2=%d\n", bufLength, bufLength2);
+//    }
+//    for (int i=0; i<bufLength; i++) { // use known, correct bufLength for compare
+//       if (buffer[i] != buffer2[i]) {
+//          printf("TB Error: buffer[%d]=%d, buffer2[%d]=%d\n", i, buffer[i], i, buffer2[i]);
+//       }
+//    } // for
    
-   // compare the written values against the read-back values
-   
-*/
+   // End example usage
+   // ------------------------------------------------------------------
 
 
-      
+     
+   // --------------------------
+   // Initialization
+   // --------------------------
+   reset_queue(); 
    
-  
+   // ----------------------------------------------------------------
+   // Run a few "smoke tests" to validate that basic functionality is
+   // working.
+   // ----------------------------------------------------------------
    flag = fill_and_empty();
    if (flag) goto tests_done;
-   
+     
    flag = fill_to_half_and_empty();
    if (flag) goto tests_done;
 
    flag = fill_and_empty();
    if (flag) goto tests_done;
    
-   
-   
-   
 
-   
+
+
    // ----------------------------------------------------------------
-   // The auto-grading testbench performs constrained random testing here
+   // This is the constrained random part of the test. Hammer away at
+   // the queue, testing only for correct values read back.
    // ----------------------------------------------------------------
-   
-   
-   // ----------------------------------------------------------------
-   // Students: This is where you shall develop additional tests beyond 
-   // the tests above to stress your design. Strive to try to break your 
-   // own design.
-   // ----------------------------------------------------------------
-   
   
+   // Students: This is the part of the test you do not get to see :)
    
    
-   
-   
-   
-   
+ 
+
    
    
 tests_done:
-   //printf ("\n%d test cases completed. %d errors reported.\n", NUMBER_OF_TEST_CASES, tb_errors);
-   //printf ("Score = %d\n", (NUMBER_OF_TEST_CASES - tb_errors)*100/NUMBER_OF_TEST_CASES);
+   printf ("\nTest Done.\n");
    
    // if the number of tb_errors > tb_wptr, clamp tb_errors to tb_wptr + meta errors
    if ((tb_errors + tb_meta_errors) > tb_wptr) {
       tb_errors = tb_wptr;
       printf ("Warning: High error count. Clamping error count to number of test cases\n");
    }
-            
-//   printf ("\n%d test cases completed. %d data mismatch errors reported. %d meta errors reported.\n", 
-//            tb_wptr, tb_errors, tb_meta_errors);           
-            
+                     
    // score should be a number from 0 to 100 
-   //score = ((tb_wptr - (tb_errors + tb_meta_errors))*100/tb_wptr); // % of read errors and meta errors
-   score = ((tb_wptr - tb_errors)*100/tb_wptr); // % of read errors and meta errors
+   if (tb_wptr != 0) {
+     score = ((tb_wptr - tb_errors)*100/tb_wptr); // % of read errors and meta errors
+   } else {
+     score = 0;
+   }
 
    // clamp score to 50 if it is < 50, 
    // this is partial credit for a poor implementation 
@@ -471,7 +592,9 @@ tests_done:
      score = 50; 
      printf ("Warning: Low score. Clamping score to 50\n");
    }
-   printf ("\nScore = %d\n\n", score);
+   printf ("Score = %d\n\n", score);
+   
+
    
    return (0);
    

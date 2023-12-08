@@ -1,6 +1,6 @@
 /***********************************************************************
  * @file      main.c
- * @version   0.7
+ * @version   0.8
  * @brief     Function implementation file.
  *
  * @author    Dave Sluiter, David.Sluiter@Colorado.edu
@@ -21,6 +21,9 @@
  *                circular_buffer.h.
  *            0.7 Nov 20, 2023. Updated the queue_struct_t to use the exact values we'll
  *                need in Assignment 8. 
+ *            0.8 Dec 8, 2023. Updated genRandom2to5() to genRandom1to5(). Previously was
+ *                testing buffer fill lengths of 2 to 5, now it's 1 to 5, better test
+ *                coverage.
  *
  * @institution University of Colorado Boulder (UCB)
  * @course      ECEN 5823 - IoT Embedded Firmware
@@ -34,6 +37,11 @@
  * @description  Implements the circular buffer testbench.
  *               run as: % ./main | tee main.log 
  *               run as: % ./main <seed> | tee main.log 
+ *
+ * *************************************************************
+ * Students: Use this file as a starting point for your testing. 
+ * *************************************************************
+ *
  */
 
 
@@ -90,14 +98,14 @@
 
 
 // ---------------------------------------------------------------------
-// Generator an int between 2 to 5
+// Generator an int between 1 to 5
 // ---------------------------------------------------------------------
-int genRandom2to5() {
+int genRandom1to5() {
 
    int theValue = rand() & 0x07; // so range at this point is 0 to 7
    
-   if (theValue < MIN_BUFFER_LENGTH) { // 0 or 1
-       return (theValue + 2);          // make it 2 or 3
+   if (theValue < MIN_BUFFER_LENGTH) { // 0 
+       return (theValue + 1);          // make it 1
    }
    
    if (theValue > MAX_BUFFER_LENGTH) { // 6 or 7
@@ -106,7 +114,7 @@ int genRandom2to5() {
    
    return (theValue); // 2, 3, 4, 5
    
-} // genRandom2to5()
+} // genRandom1to5()
 
 
 
@@ -158,7 +166,7 @@ int fill_and_empty() {
    
       // Generate the data
       charHandle = (uint16_t) rand();
-      bufLength  = (uint32_t) genRandom2to5();
+      bufLength  = (uint32_t) genRandom1to5();
       for (int index2=0; index2<bufLength; index2++) {
           buffer[index2] = (uint8_t) rand();
       }
@@ -309,7 +317,7 @@ int fill_to_half_and_empty() {
    
       // Generate the data
       charHandle = (uint16_t) rand();
-      bufLength  = (uint32_t) genRandom2to5();
+      bufLength  = (uint32_t) genRandom1to5();
       for (int index2=0; index2<bufLength; index2++) {
           buffer[index2] = (uint8_t) rand();
       }
@@ -556,13 +564,27 @@ int main(int argc, char *argv[]) {
    
 
 
-
    // ----------------------------------------------------------------
    // This is the constrained random part of the test. Hammer away at
    // the queue, testing only for correct values read back.
    // ----------------------------------------------------------------
   
-   // Students: This is the part of the test you do not get to see :)
+   // Students: In the real autograder we will use, this is the part of the test that runs
+   //           the constrained random portion of the test.
+   // 
+   // Action: Create more tests here to thoroughly test your design.
+   //
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
    
    
  

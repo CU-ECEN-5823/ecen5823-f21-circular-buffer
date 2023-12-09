@@ -112,7 +112,7 @@ int genRandom1to5() {
        return (theValue - 2);          // make it 4 or 5
    }
    
-   return (theValue); // 2, 3, 4, 5
+   return (theValue); // 1, 2, 3, 4, 5
    
 } // genRandom1to5()
 

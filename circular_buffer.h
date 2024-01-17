@@ -63,15 +63,8 @@
 // *** The autograder (i.e. the testbench) uses this struct definition!
 // *** Changing this struct definiton will cause the autograder to fail. 
 
-// typedef struct {
-//   uint8_t       a; // An 8-bit user value in 1 queue entry
-//   uint16_t      b; // A 16-bit user value in 1 queue entry
-// } queue_struct_t;
-
 #define MAX_BUFFER_LENGTH  (5)
 #define MIN_BUFFER_LENGTH  (1)
-
-//typedef uint8_t fixedArray[MAX_BUFFER_LENGTH];
 
 typedef struct {
 

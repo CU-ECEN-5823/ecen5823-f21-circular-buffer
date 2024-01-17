@@ -69,7 +69,7 @@
 // } queue_struct_t;
 
 #define MAX_BUFFER_LENGTH  (5)
-#define MIN_BUFFER_LENGTH  (2)
+#define MIN_BUFFER_LENGTH  (1)
 
 //typedef uint8_t fixedArray[MAX_BUFFER_LENGTH];
 
@@ -78,12 +78,11 @@ typedef struct {
   uint16_t       charHandle;                 // GATT DB handle from gatt_db.h
   uint32_t       bufLength;                  // Number of bytes written to field buffer[5]
   uint8_t        buffer[MAX_BUFFER_LENGTH];  // The actual data buffer for the indication,
-                                             //   need 5-bytes for HTM and 2-bytes for button_state.
-                                             //   For testing, test lengths 2 through 5,
-                                             //   a length of 0 or 1 shall be considered an
+                                             //   need 5-bytes for HTM and 1-byte for button_state.
+                                             //   For testing, test lengths 1 through 5,
+                                             //   a length of 0 shall be considered an
                                              //   error, as well as as lengths > 5
-  //fixedArray     buffer;
-  
+                                             
 } queue_struct_t;
 
 

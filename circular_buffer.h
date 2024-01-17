@@ -81,7 +81,7 @@ typedef struct {
                                              //   need 5-bytes for HTM and 1-byte for button_state.
                                              //   For testing, test lengths 1 through 5,
                                              //   a length of 0 shall be considered an
-                                             //   error, as well as as lengths > 5
+                                             //   error, as well as lengths > 5
                                              
 } queue_struct_t;
 

@@ -7,7 +7,8 @@
  *
  * @institution University of Colorado Boulder (UCB)
  * @course      ECEN 5823 - IoT Embedded Firmware
- * @instructor  David Sluiter
+ * @instructor  Chris Choi 
+ * @source      Adopted from David Sluiter
  *
  * @date      0.1 Dec 22, 2021
  *            0.2 Sept 2, 2022. Changed assignment to 0.5.
